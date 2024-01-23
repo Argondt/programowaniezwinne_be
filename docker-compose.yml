@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    ports:
+      - 5432:5432
+    volumes:
+      - ~/apps/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=S3cret
+      - POSTGRES_USER=webApp_user
+      - POSTGRES_DB=webApp_db
+  minio:
+    image: docker.io/bitnami/minio:2022
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    networks:
+      - minionetwork
+    volumes:
+      - 'minio_data:/data'
+    environment:
+      - MINIO_ROOT_USER=your_username
+      - MINIO_ROOT_PASSWORD=your_pasword
+      - MINIO_DEFAULT_BUCKETS=your_bucket_name
+  react-app:
+    build: .
+    ports:
+      - "8120:3000"
+    volumes:
+      - ./:/app
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8122:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - react-app
+networks:
+  minionetwork:
+    driver: bridge
+
+volumes:
+  minio_data:
+    driver: local
